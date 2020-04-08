@@ -14,6 +14,8 @@ import networkx
 import warnings
 
 
+# 3.md: regular expressions #
+
 def remove_url(txt):
     """Replace URLs found in a text string with nothing
     (i.e. it will remove the URL from the string).
@@ -36,6 +38,8 @@ def main():
 
     sns.set(font_scale=1.5)
     sns.set_style("whitegrid")
+    
+    # 1.md - authentication #
 
     # input your credentials here
     consumer_key = 'xxx'
@@ -46,7 +50,8 @@ def main():
     auth = tw.OAuthHandler(consumer_key, consumer_secret)
     auth.set_access_token(access_token, access_token_secret)
     api = tw.API(auth, wait_on_rate_limit=True)
-
+    
+    # 2.md - searching (similar to other 2.md, however rather than using all_tweets directly, the counts of each hashtag are kept track of in a list all_hashtags #
     search_term = "NBA -filter:retweets"
 
     tweets = tw.Cursor(api.search,
@@ -56,55 +61,18 @@ def main():
 
     all_tweets = []
     all_hashtags = {}
+    # this loop keeps count of all the hashtags
     for tweet in tweets:
-        all_tweets.append(tweet.text)
+        # note that in 3.md - this statement should be modified to include remove_url
+        all_tweets.append(remove_url(tweet.text))
         for hashtag in tweet.entities['hashtags']:
             if hashtag['text'] not in all_hashtags.keys():
                 all_hashtags[hashtag['text']] = 1
             else:
                 all_hashtags[hashtag['text']] += 1
-    print('hello')
     print(all_hashtags)
-
-    # print(all_tweets[:5])
-    all_tweets_no_urls = [remove_url(tweet) for tweet in all_tweets]
-    # print(all_tweets_no_urls[:5])
-
-    # Split the words from one tweet into unique elements
-    print(all_tweets_no_urls[0].split())
-
-    # Split the words from one tweet into unique elements
-    print(all_tweets_no_urls[0].lower().split())
-
-    # Create a list of lists containing lowercase words for each tweet
-    words_in_tweet = [tweet.lower().split() for tweet in all_tweets_no_urls]
-    print(words_in_tweet[:2])
-
-    # List of all words across tweets
-    all_words_no_urls = list(itertools.chain(*words_in_tweet))
-
-    # Create counter
-    counts_no_urls = collections.Counter(all_words_no_urls)
-
-    print(counts_no_urls.most_common(15))
-
-    clean_tweets_no_urls = pd.DataFrame(counts_no_urls.most_common(15),
-                                        columns=['words', 'count'])
-
-    print(clean_tweets_no_urls.head())
-
-    fig, ax = plt.subplots(figsize=(8, 8))
-    # Plot horizontal bar graph
-    clean_tweets_no_urls.sort_values(by='count').plot.barh(x='words',
-                                                           y='count',
-                                                           ax=ax,
-                                                           color="purple")
-
-    ax.set_title("Common Words Found in Tweets (Including All Words)")
-    plt.show()
-
-    # pie graph
-
+    
+    # 4.md - Generating list of most common hashtags into pie chart #
     # Pie chart, where the slices will be ordered and plotted counter-clockwise:
     pie_hashtags = {"Other": 0}
     hashtag_total = sum(all_hashtags.values())
@@ -116,7 +84,9 @@ def main():
             pie_hashtags["Other"] += all_hashtags[hashtag]
     labels = pie_hashtags.keys()
     sizes = pie_hashtags.values()
-
+    
+    # 5.md - Plotting chart #
+    
     fig1, ax1 = plt.subplots()
     ax1.pie(sizes, labels=labels, autopct='%1.1f%%',
             shadow=True, startangle=90)
